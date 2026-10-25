@@ -6,23 +6,20 @@
     <title>The Reveal</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: #2d3436;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
         }
-
         .container {
             text-align: center;
             padding: 20px;
             width: 90%;
         }
-
         .code-box {
             background: rgba(255, 255, 255, 0.1);
             padding: 40px;
@@ -30,7 +27,6 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-
         input {
             padding: 15px;
             font-size: 1.5rem;
@@ -40,7 +36,6 @@
             margin-bottom: 20px;
             text-align: center;
         }
-
         button {
             padding: 15px 30px;
             font-size: 1.2rem;
@@ -50,7 +45,6 @@
             border-radius: 10px;
             cursor: pointer;
         }
-
         .photo-grid {
             display: flex;
             gap: 15px;
@@ -58,7 +52,6 @@
             margin-top: 30px;
             flex-wrap: wrap;
         }
-
         .photo-item {
             flex: 1;
             min-width: 200px;
@@ -66,13 +59,11 @@
             overflow: hidden;
             border: 3px solid white;
         }
-
         .photo-item img {
             width: 100%;
             height: 300px;
             object-fit: cover;
         }
-
         .photo-label {
             background: white;
             color: black;
@@ -80,7 +71,6 @@
             font-size: 0.8rem;
             font-weight: bold;
         }
-
         #hidden-area {
             display: none;
             flex-direction: column;
@@ -94,7 +84,6 @@
         <div id="input-area" class="code-box">
             <h2 style="font-size: 2rem;">Enter the Secret Code</h2>
             <input type="text" id="user-code" placeholder="????">
-            <br>
             <button onclick="unlock()">Unlock</button>
         </div>
 
@@ -114,32 +103,26 @@
         const secretCode = "7707"; // Change this to your secret code
 
         function unlock() {
-            const input = document.getElementById('user-code').value;
-            if (input === secretCode) {
+            const userInput = document.getElementById('user-code').value;
+            
+            if (userInput === secretCode) {
                 // Pull photos from Local Storage
                 const front = localStorage.getItem('frontPhoto');
                 const back = localStorage.getItem('backPhoto');
 
-                document.getElementById('img-front').src = front;
-                document.getElementById('img-back').src = back;
-
-                // Show the photos and hide the input
-                document.getElementById('hidden-area').style.display = "flex";
-                document.getElementById('input-area').style.display = "none";
-                
-                // Add a little pop effect
-                document.getElementById('hidden-area').style.animation = "pop 0.5s ease-out";
+                // Check if the photos actually exist
+                if (front && back) {
+                    document.getElementById('img-front').src = front;
+                    document.getElementById('img-back').src = back;
+                    document.getElementById('hidden-area').style.display = "flex";
+                    document.getElementById('input-area').style.display = "none";
+                } else {
+                    alert("Photos are still loading...");
+                }
             } else {
                 alert("Incorrect code!");
             }
         }
     </script>
-
-    <style>
-        @keyframes pop {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-    </style>
 </body>
 </html>
