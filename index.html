@@ -1,1 +1,61 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Access</title> <style> body { background:#000; color:#0f0; font-family:monospace; text-align:center; padding-top:50px; } input { padding:10px; font-size:18px; } img { max-width:90%; margin:20px0; border:1px solid #0f0; } #pics { display:none; } </style> </head> <body> <h2>Enter Access Code</h2> <input type="password" id="code" placeholder="code"> <button onclick="check()">Unlock</button> <div id="pics"> <p>Front camera</p> <img id="front"><p>Back camera</p> <img id="back"></div> <script> const SECRET = 'unlock42';function check() { if (document.getElementById('code').value === SECRET) { document.getElementById('front').src = localStorage.getItem('frontCam') || ''; document.getElementById('back').src = localStorage.getItem('backCam') || ''; document.getElementById('pics').style.display = 'block'; } else { alert('wrong'); } } </script> </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Reveal</title>
+    <style>
+        body { background: #6c63ff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0; color: white; }
+        .container { text-align: center; background: white; color: #333; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .photo-box { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        img { width: 200px; height: 250px; object-fit: cover; border-radius: 10px; border: 2px solid #eee; }
+        input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; background: #6c63ff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #hidden-photos { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 id="title">Enter the Secret Code</h2>
+        <div id="input-area">
+            <input type="text" id="code-input" placeholder="Code">
+            <button onclick="unlock()">Unlock</button>
+        </div>
+
+        <div id="hidden-photos" class="photo-box">
+            <div>
+                <img id="display-front" src="" alt="Front">
+                <p>Front View</p>
+            </div>
+            <div>
+                <img id="display-back" src="" alt="Back">
+                <p>Back View</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const secretCode = "7707"; // Set your secret code here
+
+        function unlock() {
+            const userInput = document.getElementById('code-input').value;
+            
+            if (userInput === secretCode) {
+                // Pull photos from the "Backpack" (Local Storage)
+                const front = localStorage.getItem('frontPhoto');
+                const back = localStorage.getItem('backPhoto');
+
+                document.getElementById('display-front').src = front;
+                document.getElementById('display-back').src = back;
+
+                // Show the photos and update the title
+                document.getElementById('hidden-photos').style.display = "flex";
+                document.getElementById('title').innerText = "Surprise!";
+                document.getElementById('input-area').style.display = "none";
+            } else {
+                alert("Wrong code!");
+            }
+        }
+    </script>
+</body>
+</html>
