@@ -1,128 +1,277 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Reveal</title>
-    <style>
-        body {
-            margin: 0; padding: 0;
-            background-color: #2d3436;
-            font-family: 'Segoe UI', sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-        .container {
-            text-align: center;
-            padding: 20px;
-            width: 90%;
-        }
-        .code-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        input {
-            padding: 15px;
-            font-size: 1.5rem;
-            width: 150px;
-            border-radius: 10px;
-            border: none;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        button {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            background-color: #0984e3;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .photo-grid {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-        .photo-item {
-            flex: 1;
-            min-width: 200px;
-            border-radius: 15px;
-            overflow: hidden;
-            border: 3px solid white;
-        }
-        .photo-item img {
-            width: 100%;
-            height: 300px;
-            object-fit: cover;
-        }
-        .photo-label {
-            background: white;
-            color: black;
-            padding: 5px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        #hidden-area {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Private Gallery</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 24px;
+      font: 16px/1.5 system-ui, sans-serif;
+      background: #101525; color: #f5f6ff;
+    }
+    main { max-width: 1050px; margin: 0 auto; }
+    header {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; gap: 12px;
+    }
+    h1 { margin-bottom: 4px; }
+    .muted { color: #b9c3dc; }
+    input {
+      display: block; width: 100%; padding: 12px;
+      border-radius: 10px; border: 1px solid #47536e;
+      background: #1b2338; color: white;
+    }
+    button, .link {
+      display: inline-block; padding: 11px 15px;
+      border: 0; border-radius: 10px;
+      background: #8b7cff; color: white;
+      font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .secondary { background: #35415e; }
+    button:disabled { opacity: .55; }
+    label { display: block; margin: 16px 0 6px; }
+    #login { max-width: 440px; margin-top: 30px; }
+    #login button { width: 100%; margin-top: 12px; }
+    #gallery { margin-top: 28px; }
+    #photos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .photo-card {
+      min-width: 0; padding: 12px;
+      background: #1b2338; border: 1px solid #35415e;
+      border-radius: 16px;
+    }
+    .photo-card img {
+      display: block; width: 100%; height: 220px;
+      object-fit: contain; background: #101525;
+      border-radius: 10px;
+    }
+    .filename { overflow-wrap: anywhere; }
+    .photo-card button { width: 100%; margin-top: 8px; }
+    #status { overflow-wrap: anywhere; }
+    [hidden] { display: none !important; }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        <div id="input-area" class="code-box">
-            <h2 style="font-size: 2rem;">Enter the Secret Code</h2>
-            <input type="text" id="user-code" placeholder="????">
-            <button onclick="unlock()">Unlock</button>
-        </div>
-
-        <div id="hidden-area" class="photo-grid">
-            <div class="photo-item">
-                <img id="img-front" src="" alt="Front View">
-                <div class="photo-label">FRONT VIEW</div>
-            </div>
-            <div class="photo-item">
-                <img id="img-back" src="" alt="Back View">
-                <div class="photo-label">BACK VIEW</div>
-            </div>
-        </div>
+<main>
+  <header>
+    <div>
+      <h1>🖼️ My Private Gallery</h1>
+      <p class="muted">Your pictures, visible only to your account.</p>
     </div>
+    <a class="link" href="YOUR_CAMERA_URL">Open camera</a>
+  </header>
 
-    <script>
-        const secretCode = "7707"; // Change this to your secret code
+  <section id="login">
+    <h2>Sign in</h2>
+    <label for="email">Your email</label>
+    <input id="email" type="email" autocomplete="username"
+           placeholder="you@example.com">
+    <label for="password">Password</label>
+    <input id="password" type="password"
+           autocomplete="current-password" placeholder="Your password">
+    <button id="loginButton">Sign in to gallery</button>
+  </section>
 
-        function unlock() {
-            const userInput = document.getElementById('user-code').value;
-            
-            if (userInput === secretCode) {
-                // Pull photos from Local Storage
-                const front = localStorage.getItem('frontPhoto');
-                const back = localStorage.getItem('backPhoto');
+  <section id="gallery" hidden>
+    <p id="account" class="muted"></p>
+    <button id="refreshButton">Refresh photos</button>
+    <button id="logoutButton" class="secondary">Sign out</button>
+    <p id="status" class="muted" role="status" aria-live="polite"></p>
+    <div id="photos"></div>
+  </section>
+</main>
 
-                // Check if the photos actually exist
-                if (front && back) {
-                    document.getElementById('img-front').src = front;
-                    document.getElementById('img-back').src = back;
-                    document.getElementById('hidden-area').style.display = "flex";
-                    document.getElementById('input-area').style.display = "none";
-                } else {
-                    alert("Photos are still loading...");
-                }
-            } else {
-                alert("Incorrect code!");
-            }
+<script>
+(() => {
+  const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+  const SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
+  const BUCKET = "private-photos";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL, SUPABASE_KEY
+  );
+
+  const $ = id => document.getElementById(id);
+  let currentUser = null;
+  let loadVersion = 0;
+
+  function status(message) {
+    $("status").textContent = message;
+  }
+
+  function showSession(user) {
+    currentUser = user;
+    loadVersion++;
+    $("login").hidden = !!user;
+    $("gallery").hidden = !user;
+    $("account").textContent = user ? "Signed in as " + user.email : "";
+    $("photos").replaceChildren();
+
+    if (user) {
+      status("Press Refresh photos to load your pictures.");
+    }
+  }
+
+  async function loadPhotos() {
+    if (!currentUser) return;
+
+    const user = currentUser;
+    const version = ++loadVersion;
+    $("refreshButton").disabled = true;
+    $("photos").replaceChildren();
+    status("Loading your private photos...");
+
+    try {
+      const { data: files, error } = await client.storage
+        .from(BUCKET)
+        .list(user.id, {
+          limit: 100,
+          sortBy: { column: "created_at", order: "desc" }
+        });
+
+      if (error) throw error;
+      if (currentUser?.id !== user.id || version !== loadVersion) return;
+
+      const images = (files || []).filter(file =>
+        file.name &&
+        !file.name.startsWith(".") &&
+        file.id
+      );
+
+      if (images.length === 0) {
+        status("No pictures yet. Take one using your camera page.");
+        return;
+      }
+
+      status(images.length + " picture(s) found.");
+
+      for (const file of images) {
+        if (currentUser?.id !== user.id || version !== loadVersion) return;
+
+        const path = user.id + "/" + file.name;
+        const { data, error: urlError } = await client.storage
+          .from(BUCKET)
+          .createSignedUrl(path, 60);
+
+        if (urlError) {
+          console.error(urlError);
+          continue;
         }
-    </script>
+
+        const card = document.createElement("article");
+        card.className = "photo-card";
+
+        const image = document.createElement("img");
+        image.alt = file.name;
+        image.loading = "lazy";
+        image.src = data.signedUrl;
+
+        const name = document.createElement("p");
+        name.className = "filename";
+        name.textContent = file.name;
+
+        const downloadButton = document.createElement("button");
+        downloadButton.textContent = "Download picture";
+
+        downloadButton.addEventListener("click", async () => {
+          downloadButton.disabled = true;
+          downloadButton.textContent = "Downloading...";
+
+          try {
+            const { data: blob, error } = await client.storage
+              .from(BUCKET)
+              .download(path);
+
+            if (error) throw error;
+
+            const objectUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = objectUrl;
+            link.download = file.name;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+          } catch (error) {
+            alert("Download failed: " + error.message);
+          } finally {
+            downloadButton.disabled = false;
+            downloadButton.textContent = "Download picture";
+          }
+        });
+
+        card.append(image, name, downloadButton);
+        $("photos").appendChild(card);
+      }
+
+      if (currentUser?.id === user.id && version === loadVersion) {
+        status("Your private gallery is ready.");
+      }
+    } catch (error) {
+      if (currentUser?.id === user.id && version === loadVersion) {
+        status("Could not load photos: " + error.message);
+      }
+    } finally {
+      if (version === loadVersion) {
+        $("refreshButton").disabled = false;
+      }
+    }
+  }
+
+  $("loginButton").addEventListener("click", async () => {
+    const email = $("email").value.trim();
+    const password = $("password").value;
+    if (!email || !password) return alert("Enter your email and password.");
+
+    $("loginButton").disabled = true;
+    status("Signing in...");
+
+    try {
+      const { data, error } = await client.auth.signInWithPassword({
+        email, password
+      });
+      if (error) throw error;
+      showSession(data.user);
+      await loadPhotos();
+    } catch (error) {
+      status("Sign-in failed: " + error.message);
+    } finally {
+      $("loginButton").disabled = false;
+    }
+  });
+
+  $("refreshButton").addEventListener("click", loadPhotos);
+
+  $("logoutButton").addEventListener("click", async () => {
+    const { error } = await client.auth.signOut();
+    if (error) status(error.message);
+    else status("You have signed out.");
+  });
+
+  client.auth.onAuthStateChange((_event, session) => {
+    const previousId = currentUser?.id || null;
+    const nextUser = session?.user || null;
+    showSession(nextUser);
+
+    if (nextUser && nextUser.id !== previousId) {
+      setTimeout(loadPhotos, 0);
+    }
+  });
+
+  (async () => {
+    const { data, error } = await client.auth.getSession();
+    if (error) status(error.message);
+    showSession(data?.session?.user || null);
+    if (data?.session?.user) await loadPhotos();
+  })();
+})();
+</script>
 </body>
 </html>
