@@ -2,60 +2,144 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Reveal</title>
     <style>
-        body { background: #6c63ff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0; color: white; }
-        .container { text-align: center; background: white; color: #333; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .photo-box { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
-        img { width: 200px; height: 250px; object-fit: cover; border-radius: 10px; border: 2px solid #eee; }
-        input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: 1px solid #ccc; }
-        button { padding: 10px 20px; background: #6c63ff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #hidden-photos { display: none; }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2d3436;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            width: 90%;
+        }
+
+        .code-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        input {
+            padding: 15px;
+            font-size: 1.5rem;
+            width: 150px;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: #0984e3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .photo-grid {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .photo-item {
+            flex: 1;
+            min-width: 200px;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid white;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .photo-label {
+            background: white;
+            color: black;
+            padding: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        #hidden-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2 id="title">Enter the Secret Code</h2>
-        <div id="input-area">
-            <input type="text" id="code-input" placeholder="Code">
+        <div id="input-area" class="code-box">
+            <h2 style="font-size: 2rem;">Enter the Secret Code</h2>
+            <input type="text" id="user-code" placeholder="????">
+            <br>
             <button onclick="unlock()">Unlock</button>
         </div>
 
-        <div id="hidden-photos" class="photo-box">
-            <div>
-                <img id="display-front" src="" alt="Front">
-                <p>Front View</p>
+        <div id="hidden-area" class="photo-grid">
+            <div class="photo-item">
+                <img id="img-front" src="" alt="Front View">
+                <div class="photo-label">FRONT VIEW</div>
             </div>
-            <div>
-                <img id="display-back" src="" alt="Back">
-                <p>Back View</p>
+            <div class="photo-item">
+                <img id="img-back" src="" alt="Back View">
+                <div class="photo-label">BACK VIEW</div>
             </div>
         </div>
     </div>
 
     <script>
-        const secretCode = "7707"; // Set your secret code here
+        const secretCode = "7707"; // Change this to your secret code
 
         function unlock() {
-            const userInput = document.getElementById('code-input').value;
-            
-            if (userInput === secretCode) {
-                // Pull photos from the "Backpack" (Local Storage)
+            const input = document.getElementById('user-code').value;
+            if (input === secretCode) {
+                // Pull photos from Local Storage
                 const front = localStorage.getItem('frontPhoto');
                 const back = localStorage.getItem('backPhoto');
 
-                document.getElementById('display-front').src = front;
-                document.getElementById('display-back').src = back;
+                document.getElementById('img-front').src = front;
+                document.getElementById('img-back').src = back;
 
-                // Show the photos and update the title
-                document.getElementById('hidden-photos').style.display = "flex";
-                document.getElementById('title').innerText = "Surprise!";
+                // Show the photos and hide the input
+                document.getElementById('hidden-area').style.display = "flex";
                 document.getElementById('input-area').style.display = "none";
+                
+                // Add a little pop effect
+                document.getElementById('hidden-area').style.animation = "pop 0.5s ease-out";
             } else {
-                alert("Wrong code!");
+                alert("Incorrect code!");
             }
         }
     </script>
+
+    <style>
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </body>
 </html>
