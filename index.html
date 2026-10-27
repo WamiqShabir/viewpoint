@@ -1,63 +1,301 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Private Gallery</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; padding: 24px;
-      font: 16px/1.5 system-ui, sans-serif;
-      background: #101525; color: #f5f6ff;
-    }
-    main { max-width: 1050px; margin: 0 auto; }
-    header {
-      display: flex; flex-wrap: wrap; align-items: center;
-      justify-content: space-between; gap: 12px;
-    }
-    h1 { margin-bottom: 4px; }
-    .muted { color: #b9c3dc; }
-    input {
-      display: block; width: 100%; padding: 12px;
-      border-radius: 10px; border: 1px solid #47536e;
-      background: #1b2338; color: white;
-    }
-    button, .link {
-      display: inline-block; padding: 11px 15px;
-      border: 0; border-radius: 10px;
-      background: #8b7cff; color: white;
-      font-weight: 700; text-decoration: none; cursor: pointer;
-    }
-    .secondary { background: #35415e; }
-    button:disabled { opacity: .55; }
-    label { display: block; margin: 16px 0 6px; }
-    #login { max-width: 440px; margin-top: 30px; }
-    #login button { width: 100%; margin-top: 12px; }
-    #gallery { margin-top: 28px; }
-    #photos {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 18px;
-    }
-    .photo-card {
-      min-width: 0; padding: 12px;
-      background: #1b2338; border: 1px solid #35415e;
-      border-radius: 16px;
-    }
-    .photo-card img {
-      display: block; width: 100%; height: 220px;
-      object-fit: contain; background: #101525;
-      border-radius: 10px;
-    }
-    .filename { overflow-wrap: anywhere; }
-    .photo-card button { width: 100%; margin-top: 8px; }
-    #status { overflow-wrap: anywhere; }
-    [hidden] { display: none !important; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101525">
+<title>My Private Gallery</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --bg: #101525;
+  --panel: #1b2338;
+  --border: #35415e;
+  --text: #f5f6ff;
+  --muted: #b9c3dc;
+  --accent: #8b7cff;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px;
+  font: 15px/1.5 system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+h1 { margin-bottom: 4px; }
+.muted { color: var(--muted); }
+
+input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #47536e;
+  background: var(--panel);
+  color: white;
+}
+
+button, .link {
+  display: inline-block;
+  padding: 11px 15px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+
+button:hover, .link:hover {
+  filter: brightness(1.12);
+}
+
+button:active { transform: scale(.98); }
+button:disabled { opacity: .55; cursor: wait; }
+
+.secondary { background: #35415e; }
+.danger { background: #a63d56; }
+
+label {
+  display: block;
+  margin: 16px 0 6px;
+}
+
+#login {
+  max-width: 440px;
+  margin-top: 30px;
+}
+
+#login button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+#gallery { margin-top: 28px; }
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+#status {
+  overflow-wrap: anywhere;
+  min-height: 24px;
+}
+
+#photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.photo-card {
+  min-width: 0;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: transform .2s, border-color .2s;
+}
+
+.photo-card:hover {
+  transform: translateY(-3px);
+  border-color: #8174ff;
+}
+
+.photo-card img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+  background: #0b0f19;
+  border-radius: 10px;
+  cursor: zoom-in;
+}
+
+.filename {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.photo-card button { width: 100%; margin-top: 8px; }
+
+.open-button {
+  background: #35415e;
+}
+
+/* FULL-SCREEN IMAGE VIEWER */
+
+#viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  background: rgba(3, 5, 12, .97);
+  backdrop-filter: blur(14px);
+}
+
+#viewer.open { display: flex; }
+
+.viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #283148;
+}
+
+#viewerTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  color: #e4e9ff;
+}
+
+.viewer-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.viewer-tools button {
+  min-width: 42px;
+  padding: 10px 12px;
+  background: #202940;
+  border-color: #3c4965;
+}
+
+.viewer-tools .close-button {
+  background: #a63d56;
+  border-color: #a63d56;
+}
+
+#zoomLabel {
+  min-width: 54px;
+  text-align: center;
+  font-size: 12px;
+  color: #d2d9ed;
+}
+
+#imageStage {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+#imageStage.dragging { cursor: grabbing; }
+
+#viewerImage {
+  display: block;
+  max-width: 90vw;
+  max-height: 78vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transform-origin: center center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  will-change: transform;
+}
+
+.viewer-footer {
+  padding: 12px 18px;
+  text-align: center;
+  color: #929fba;
+  font-size: 12px;
+  border-top: 1px solid #283148;
+}
+
+#zoomSlider {
+  display: inline-block;
+  width: 120px;
+  padding: 0;
+  accent-color: #8b7cff;
+  border: none;
+  background: transparent;
+}
+
+#viewerDownload { background: #6555dd; }
+
+[hidden] { display: none !important; }
+
+@media (max-width: 600px) {
+  body { padding: 16px; }
+
+  #photos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .photo-card { padding: 8px; }
+
+  .photo-card img { height: 160px; }
+
+  .photo-card button {
+    padding: 9px 5px;
+    font-size: 12px;
+  }
+
+  .viewer-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .viewer-tools {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .viewer-tools button {
+    flex: 1;
+    min-width: 38px;
+    padding: 10px 7px;
+  }
+
+  #zoomSlider { width: 85px; }
+  #viewerImage { max-width: 94vw; max-height: 68vh; }
+}
+</style>
 </head>
+
 <body>
 <main>
   <header>
@@ -70,23 +308,63 @@
 
   <section id="login">
     <h2>Sign in</h2>
+
     <label for="email">Your email</label>
-    <input id="email" type="email" autocomplete="username"
-           placeholder="you@example.com">
+    <input id="email" type="email"
+      autocomplete="username" placeholder="you@example.com">
+
     <label for="password">Password</label>
     <input id="password" type="password"
-           autocomplete="current-password" placeholder="Your password">
+      autocomplete="current-password" placeholder="Your password">
+
     <button id="loginButton">Sign in to gallery</button>
   </section>
 
   <section id="gallery" hidden>
     <p id="account" class="muted"></p>
-    <button id="refreshButton">Refresh photos</button>
-    <button id="logoutButton" class="secondary">Sign out</button>
+
+    <div class="toolbar">
+      <button id="refreshButton">↻ Refresh photos</button>
+      <button id="logoutButton" class="secondary">Sign out</button>
+    </div>
+
     <p id="status" class="muted" role="status" aria-live="polite"></p>
     <div id="photos"></div>
   </section>
 </main>
+
+<!-- Full-screen image viewer -->
+<div id="viewer" role="dialog" aria-modal="true"
+  aria-label="Image viewer">
+
+  <div class="viewer-header">
+    <div id="viewerTitle">Image viewer</div>
+
+    <div class="viewer-tools">
+      <button id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+      <span id="zoomLabel">100%</span>
+      <button id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+
+      <input id="zoomSlider" type="range"
+        min="0.5" max="5" step="0.1" value="1"
+        aria-label="Zoom level">
+
+      <button id="rotateButton" title="Rotate image">↻ Rotate</button>
+      <button id="resetButton" title="Reset zoom and rotation">Reset</button>
+      <button id="viewerDownload">⬇ Download</button>
+      <button id="closeViewer" class="close-button"
+        aria-label="Close image viewer">✕ Close</button>
+    </div>
+  </div>
+
+  <div id="imageStage" title="Drag to move the zoomed image">
+    <img id="viewerImage" alt="Selected gallery image" draggable="false">
+  </div>
+
+  <div class="viewer-footer">
+    Scroll to zoom · Drag to move · Double-click to zoom · Esc to close
+  </div>
+</div>
 
 <script>
 (() => {
@@ -99,31 +377,208 @@
   );
 
   const $ = id => document.getElementById(id);
+
   let currentUser = null;
   let loadVersion = 0;
+  let selectedPhoto = null;
+
+  let zoom = 1;
+  let rotation = 0;
+  let panX = 0;
+  let panY = 0;
+
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragOriginX = 0;
+  let dragOriginY = 0;
 
   function status(message) {
     $("status").textContent = message;
   }
 
   function showSession(user) {
-    currentUser = user;
+    currentUser = user || null;
     loadVersion++;
-    $("login").hidden = !!user;
-    $("gallery").hidden = !user;
-    $("account").textContent = user ? "Signed in as " + user.email : "";
+
+    $("login").hidden = !!currentUser;
+    $("gallery").hidden = !currentUser;
+
+    $("account").textContent = currentUser
+      ? "Signed in as " + currentUser.email
+      : "";
+
     $("photos").replaceChildren();
 
-    if (user) {
-      status("Press Refresh photos to load your pictures.");
+    if (currentUser) {
+      status("Loading your private photos...");
+    } else {
+      closeViewer();
+      status("");
     }
   }
+
+  function updateImageTransform() {
+    $("viewerImage").style.transform =
+      `translate(${panX}px, ${panY}px) scale(${zoom}) rotate(${rotation}deg)`;
+
+    $("zoomLabel").textContent = Math.round(zoom * 100) + "%";
+    $("zoomSlider").value = zoom;
+  }
+
+  function resetImageView() {
+    zoom = 1;
+    rotation = 0;
+    panX = 0;
+    panY = 0;
+    updateImageTransform();
+  }
+
+  function openViewer(photo) {
+    selectedPhoto = photo;
+
+    $("viewerImage").src = photo.url;
+    $("viewerImage").alt = photo.name;
+    $("viewerTitle").textContent = photo.name;
+
+    resetImageView();
+    $("viewer").classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    $("closeViewer").focus();
+  }
+
+  function closeViewer() {
+    $("viewer").classList.remove("open");
+    document.body.style.overflow = "";
+    $("imageStage").classList.remove("dragging");
+
+    dragging = false;
+    selectedPhoto = null;
+    $("viewerImage").removeAttribute("src");
+  }
+
+  function setZoom(value) {
+    zoom = Math.max(0.5, Math.min(5, Number(value) || 1));
+    updateImageTransform();
+  }
+
+  $("zoomIn").addEventListener("click", () => setZoom(zoom + 0.25));
+  $("zoomOut").addEventListener("click", () => setZoom(zoom - 0.25));
+  $("zoomSlider").addEventListener("input", event => {
+    setZoom(event.target.value);
+  });
+
+  $("rotateButton").addEventListener("click", () => {
+    rotation = (rotation + 90) % 360;
+    updateImageTransform();
+  });
+
+  $("resetButton").addEventListener("click", resetImageView);
+  $("closeViewer").addEventListener("click", closeViewer);
+
+  // Click the dark background to close the viewer.
+  $("viewer").addEventListener("click", event => {
+    if (event.target === $("viewer")) closeViewer();
+  });
+
+  // Mouse wheel or trackpad scrolling zooms in/out.
+  $("imageStage").addEventListener("wheel", event => {
+    if (!$("viewer").classList.contains("open")) return;
+    event.preventDefault();
+    setZoom(zoom + (event.deltaY < 0 ? 0.15 : -0.15));
+  }, { passive: false });
+
+  // Double-click toggles between normal and enlarged.
+  $("imageStage").addEventListener("dblclick", event => {
+    if (event.target !== $("imageStage") &&
+        event.target !== $("viewerImage")) return;
+
+    setZoom(zoom > 1 ? 1 : 2);
+  });
+
+  // Drag the image around when zoomed.
+  $("imageStage").addEventListener("pointerdown", event => {
+    if (!selectedPhoto || event.button !== 0) return;
+
+    dragging = true;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    dragOriginX = panX;
+    dragOriginY = panY;
+
+    $("imageStage").classList.add("dragging");
+    $("imageStage").setPointerCapture(event.pointerId);
+  });
+
+  $("imageStage").addEventListener("pointermove", event => {
+    if (!dragging) return;
+
+    panX = dragOriginX + event.clientX - dragStartX;
+    panY = dragOriginY + event.clientY - dragStartY;
+
+    updateImageTransform();
+  });
+
+  function endDrag() {
+    dragging = false;
+    $("imageStage").classList.remove("dragging");
+  }
+
+  $("imageStage").addEventListener("pointerup", endDrag);
+  $("imageStage").addEventListener("pointercancel", endDrag);
+
+  document.addEventListener("keydown", event => {
+    if (!$("viewer").classList.contains("open")) return;
+
+    if (event.key === "Escape") closeViewer();
+    if (event.key === "+" || event.key === "=") setZoom(zoom + 0.25);
+    if (event.key === "-") setZoom(zoom - 0.25);
+    if (event.key === "0") resetImageView();
+  });
+
+  async function downloadPhoto(photo, button) {
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = "Downloading...";
+
+    try {
+      const { data: blob, error } = await client.storage
+        .from(BUCKET)
+        .download(photo.path);
+
+      if (error) throw error;
+
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = objectUrl;
+      link.download = photo.name;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      alert("Download failed: " + error.message);
+    } finally {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
+
+  $("viewerDownload").addEventListener("click", async () => {
+    if (!selectedPhoto) return;
+    await downloadPhoto(selectedPhoto, $("viewerDownload"));
+  });
 
   async function loadPhotos() {
     if (!currentUser) return;
 
     const user = currentUser;
     const version = ++loadVersion;
+
     $("refreshButton").disabled = true;
     $("photos").replaceChildren();
     status("Loading your private photos...");
@@ -137,7 +592,9 @@
         });
 
       if (error) throw error;
-      if (currentUser?.id !== user.id || version !== loadVersion) return;
+
+      if (currentUser?.id !== user.id ||
+          version !== loadVersion) return;
 
       const images = (files || []).filter(file =>
         file.name &&
@@ -153,17 +610,25 @@
       status(images.length + " picture(s) found.");
 
       for (const file of images) {
-        if (currentUser?.id !== user.id || version !== loadVersion) return;
+        if (currentUser?.id !== user.id ||
+            version !== loadVersion) return;
 
         const path = user.id + "/" + file.name;
+
         const { data, error: urlError } = await client.storage
           .from(BUCKET)
-          .createSignedUrl(path, 60);
+          .createSignedUrl(path, 3600);
 
         if (urlError) {
           console.error(urlError);
           continue;
         }
+
+        const photo = {
+          name: file.name,
+          path,
+          url: data.signedUrl
+        };
 
         const card = document.createElement("article");
         card.className = "photo-card";
@@ -171,51 +636,36 @@
         const image = document.createElement("img");
         image.alt = file.name;
         image.loading = "lazy";
-        image.src = data.signedUrl;
+        image.src = photo.url;
+        image.title = "Click to open and zoom";
+        image.addEventListener("click", () => openViewer(photo));
 
         const name = document.createElement("p");
         name.className = "filename";
         name.textContent = file.name;
 
+        const openButton = document.createElement("button");
+        openButton.className = "open-button";
+        openButton.textContent = "🔍 Open & zoom";
+        openButton.addEventListener("click", () => openViewer(photo));
+
         const downloadButton = document.createElement("button");
-        downloadButton.textContent = "Download picture";
-
-        downloadButton.addEventListener("click", async () => {
-          downloadButton.disabled = true;
-          downloadButton.textContent = "Downloading...";
-
-          try {
-            const { data: blob, error } = await client.storage
-              .from(BUCKET)
-              .download(path);
-
-            if (error) throw error;
-
-            const objectUrl = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = objectUrl;
-            link.download = file.name;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-          } catch (error) {
-            alert("Download failed: " + error.message);
-          } finally {
-            downloadButton.disabled = false;
-            downloadButton.textContent = "Download picture";
-          }
+        downloadButton.textContent = "⬇ Download picture";
+        downloadButton.addEventListener("click", () => {
+          downloadPhoto(photo, downloadButton);
         });
 
-        card.append(image, name, downloadButton);
+        card.append(image, name, openButton, downloadButton);
         $("photos").appendChild(card);
       }
 
-      if (currentUser?.id === user.id && version === loadVersion) {
+      if (currentUser?.id === user.id &&
+          version === loadVersion) {
         status("Your private gallery is ready.");
       }
     } catch (error) {
-      if (currentUser?.id === user.id && version === loadVersion) {
+      if (currentUser?.id === user.id &&
+          version === loadVersion) {
         status("Could not load photos: " + error.message);
       }
     } finally {
@@ -228,7 +678,11 @@
   $("loginButton").addEventListener("click", async () => {
     const email = $("email").value.trim();
     const password = $("password").value;
-    if (!email || !password) return alert("Enter your email and password.");
+
+    if (!email || !password) {
+      alert("Enter your email and password.");
+      return;
+    }
 
     $("loginButton").disabled = true;
     status("Signing in...");
@@ -237,7 +691,9 @@
       const { data, error } = await client.auth.signInWithPassword({
         email, password
       });
+
       if (error) throw error;
+
       showSession(data.user);
       await loadPhotos();
     } catch (error) {
@@ -247,28 +703,41 @@
     }
   });
 
+  $("password").addEventListener("keydown", event => {
+    if (event.key === "Enter") $("loginButton").click();
+  });
+
   $("refreshButton").addEventListener("click", loadPhotos);
 
   $("logoutButton").addEventListener("click", async () => {
     const { error } = await client.auth.signOut();
+
     if (error) status(error.message);
-    else status("You have signed out.");
+    else {
+      showSession(null);
+      status("You have signed out.");
+    }
   });
 
   client.auth.onAuthStateChange((_event, session) => {
-    const previousId = currentUser?.id || null;
     const nextUser = session?.user || null;
+
     showSession(nextUser);
 
-    if (nextUser && nextUser.id !== previousId) {
-      setTimeout(loadPhotos, 0);
+    if (nextUser) {
+      setTimeout(() => {
+        if (currentUser?.id === nextUser.id) loadPhotos();
+      }, 0);
     }
   });
 
   (async () => {
     const { data, error } = await client.auth.getSession();
+
     if (error) status(error.message);
+
     showSession(data?.session?.user || null);
+
     if (data?.session?.user) await loadPhotos();
   })();
 })();
